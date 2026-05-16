@@ -1,17 +1,26 @@
 #!/usr/bin/env bash
 set -e
 
-: "Esperar a que la base de datos MySQL esté lista" 
+echo "Esperando a la base de datos en ${DB_HOST:-db}..."
 
-HOST=${DB_HOST:-db}
-USER=${DB_USER:-root}
-PASS=${DB_PASSWORD:-}
-
-echo "Esperando a la base de datos en $HOST..."
-
-until mysql -h "$HOST" -u "$USER" -p"$PASS" --ssl=0 -e "SELECT 1" >/dev/null 2>&1; do
-  echo "  - aún no disponible; reintentando en 2s..."
-  sleep 2
+# Usar Python para verificar la conexión (más confiable que el cliente mysql)
+until python -c "
+import mysql.connector, os, sys
+try:
+    conn = mysql.connector.connect(
+        host=os.environ.get('DB_HOST', 'db'),
+        user=os.environ.get('DB_USER', 'monitoreo'),
+        password=os.environ.get('DB_PASSWORD', 'monitoreo_pass'),
+        database=os.environ.get('DB_NAME', 'monitoreo_sistemas'),
+        connection_timeout=5
+    )
+    conn.close()
+    sys.exit(0)
+except Exception:
+    sys.exit(1)
+" 2>/dev/null; do
+  echo "  - aún no disponible; reintentando en 3s..."
+  sleep 3
 done
 
 echo "Base de datos disponible. Ejecutando migraciones e inicialización..."

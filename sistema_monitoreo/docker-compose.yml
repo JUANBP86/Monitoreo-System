@@ -13,8 +13,12 @@ services:
       - db_data:/var/lib/mysql
       - ./database_setup.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
       - ./db_init_admin.sql:/docker-entrypoint-initdb.d/02_admin.sql:ro
+      - ./db_init_devices.sql:/docker-entrypoint-initdb.d/03_devices.sql:ro
     ports:
-      - "3306:3306"
+      - "3307:3306"
+    networks:
+      monitoreo_net:
+        ipv4_address: 172.28.0.2
 
   web:
     build: .
@@ -38,7 +42,64 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-    command: ["/bin/bash", "-c", "./wait-for-db.sh"]
+    command: ["python", "wait_for_db.py"]
+    networks:
+      monitoreo_net:
+        ipv4_address: 172.28.0.3
+
+  # ==================== MÁQUINAS VIRTUALES UBUNTU ====================
+
+  ubuntu-vm-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      MONITOR_SERVER_URL: http://web:5000/metricas
+      AGENT_INTERVAL: "60"
+    hostname: ubuntu-vm-01
+    networks:
+      monitoreo_net:
+        ipv4_address: 172.28.0.10
+
+  ubuntu-vm-02:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      MONITOR_SERVER_URL: http://web:5000/metricas
+      AGENT_INTERVAL: "60"
+    hostname: ubuntu-vm-02
+    networks:
+      monitoreo_net:
+        ipv4_address: 172.28.0.11
+
+  ubuntu-vm-03:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    restart: unless-stopped
+    depends_on:
+      - web
+    environment:
+      MONITOR_SERVER_URL: http://web:5000/metricas
+      AGENT_INTERVAL: "60"
+    hostname: ubuntu-vm-03
+    networks:
+      monitoreo_net:
+        ipv4_address: 172.28.0.12
 
 volumes:
   db_data:
+
+networks:
+  monitoreo_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
