@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
 
 # Add DB wait script and make it executable
-RUN chmod +x /app/wait-for-db.sh || true
+RUN sed -i 's/\r$//' /app/wait-for-db.sh && chmod +x /app/wait-for-db.sh
 
 ENV PYTHONUNBUFFERED=1
 EXPOSE 5000

@@ -5,9 +5,12 @@ import time
 import json
 import platform
 import subprocess
+import os
 
-# Cambiado a localhost para desarrollo local
-SERVER = "http://127.0.0.1:5000/metricas"
+# URL del servidor configurable por variable de entorno
+SERVER = os.environ.get("MONITOR_SERVER_URL", "http://127.0.0.1:5000/metricas")
+# Intervalo de envío configurable (segundos)
+INTERVAL = int(os.environ.get("AGENT_INTERVAL", "60"))
 
 def obtener_datos():
     cpu = psutil.cpu_percent(interval=1)
@@ -56,7 +59,15 @@ def obtener_datos():
     # Nueva métrica: Uptime
     uptime = time.time() - psutil.boot_time()
 
-    ip = socket.gethostbyname(socket.gethostname())
+    # Obtener la IP real del contenedor (la IP estática asignada por Docker)
+    try:
+        # Intentar obtener la IP de la interfaz de red principal
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        ip = socket.gethostbyname(socket.gethostname())
 
     datos = {
         "ip": ip,
@@ -102,4 +113,4 @@ while True:
 
         print(f"✗ Error inesperado: {e}")
 
-    time.sleep(60)
+    time.sleep(INTERVAL)
