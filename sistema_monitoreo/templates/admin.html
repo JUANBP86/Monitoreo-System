@@ -1,0 +1,342 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Administración - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-5 mt-4">
+        <div class="col">
+            <h1 style="font-size: 2.5rem;">
+                <i class="fa-solid fa-crown"></i> Panel de Administración
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Gestión de usuarios y configuración del sistema</p>
+        </div>
+    </div>
+
+    <!-- Mensajes -->
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-exclamation-triangle"></i> {{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fa-solid fa-check-circle"></i> {{ success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+
+    <!-- Estadísticas -->
+    <div class="row mb-4 g-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <i class="fa-solid fa-users fa-3x" style="color: var(--accent-light);"></i>
+                    <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Usuarios</h6>
+                    <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_usuarios }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <i class="fa-solid fa-microchip fa-3x" style="color: var(--success);"></i>
+                    <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Dispositivos</h6>
+                    <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ total_dispositivos }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <i class="fa-solid fa-triangle-exclamation fa-3x" style="color: var(--warning);"></i>
+                    <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Alertas Activas</h6>
+                    <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ alertas_abiertas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <i class="fa-solid fa-cog fa-3x" style="color: var(--accent);"></i>
+                    <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Sistema</h6>
+                    <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">OK</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gestión de Usuarios -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-users-cog"></i> Gestión de Usuarios
+                    </h5>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-secondary me-2" onclick="location.href='/admin/historial'">
+                            <i class="fa-solid fa-clock-rotate-left"></i> Ver Historial
+                        </button>
+                        <button class="btn btn-primary" onclick="mostrarCrearUsuario()">
+                            <i class="fa-solid fa-user-plus"></i> Crear Usuario
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr style="background: rgba(37, 99, 235, 0.15); border-bottom: 2px solid #2563eb;">
+                                    <th style="color: var(--accent-light); font-weight: 700;">Usuario</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Correo</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Nombre</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Rol</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Estado</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Registro</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Último Acceso</th>
+                                    <th style="color: var(--accent-light); font-weight: 700;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usuario in usuarios %}
+                                    <tr>
+                                        <td>
+                                            <i class="fa-solid fa-user"></i> {{ usuario.username }}
+                                        </td>
+                                        <td>{{ usuario.correo }}</td>
+                                        <td>{{ usuario.nombre or '—' }}</td>
+                                        <td>
+                                            <span class="badge {% if usuario.rol == 'admin' %}bg-danger{% else %}bg-info{% endif %}">
+                                                {{ usuario.rol }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if usuario.activo %}bg-success{% else %}bg-danger{% endif %}">
+                                                {% if usuario.activo %}Activo{% else %}Inactivo{% endif %}
+                                            </span>
+                                        </td>
+                                        <td>{{ usuario.fecha_registro.strftime('%Y-%m-%d') if usuario.fecha_registro else '—' }}</td>
+                                        <td>{{ usuario.ultimo_acceso.strftime('%Y-%m-%d %H:%M') if usuario.ultimo_acceso else 'Nunca' }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm" style="background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; color: white;"
+                                                        onclick="cambiarRol({{ usuario.id }}, '{{ usuario.rol }}')" title="Cambiar rol">
+                                                    <i class="fa-solid fa-user-shield"></i>
+                                                </button>
+                                                <button class="btn btn-sm {% if usuario.activo %}btn-warning{% else %}btn-success{% endif %}"
+                                                        onclick="toggleUsuario({{ usuario.id }}, {{ usuario.activo|lower }})"
+                                                        title="{% if usuario.activo %}Desactivar{% else %}Activar{% endif %} usuario">
+                                                    <i class="fa-solid fa-{% if usuario.activo %}ban{% else %}check{% endif %}"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pruebas del Sistema -->
+    <div class="row mt-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header py-3">
+                    <h5 class="mb-0">
+                        <i class="fa-solid fa-flask"></i> Pruebas del Sistema
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Prueba las funcionalidades del sistema para verificar que todo esté funcionando correctamente.</p>
+                    <button class="btn btn-primary" onclick="testAlerta()">
+                        <i class="fa-solid fa-envelope"></i> Enviar Alerta de Prueba por Email
+                    </button>
+                    <div id="testResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambiar rol -->
+<div class="modal fade" id="cambiarRolModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--secondary); color: var(--text-main);">
+            <div class="modal-header">
+                <h5 class="modal-title">Cambiar Rol de Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cambiarRolForm">
+                    <div class="mb-3">
+                        <label for="nuevoRol" class="form-label">Nuevo Rol</label>
+                        <select class="form-select" id="nuevoRol" name="rol" required style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                            <option value="user">Usuario</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="confirmarCambioRol()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para crear usuario -->
+<div class="modal fade" id="crearUsuarioModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background: var(--secondary); color: var(--text-main);">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="crearUsuarioForm" method="POST" action="{{ url_for('crear_usuario') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Usuario *</label>
+                        <input type="text" class="form-control" id="username" name="username" required style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                    </div>
+                    <div class="mb-3">
+                        <label for="correo" class="form-label">Correo Electrónico *</label>
+                        <input type="email" class="form-control" id="correo" name="correo" required style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre Completo *</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                    </div>
+                    <div class="mb-3">
+                        <label for="rol" class="form-label">Rol</label>
+                        <select class="form-select" id="rol" name="rol" style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                            <option value="user">Usuario</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="contraseña" class="form-label">Contraseña *</label>
+                        <input type="password" class="form-control" id="contraseña" name="contraseña" required style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                    </div>
+                    <div class="mb-3">
+                        <label for="contraseña_confirm" class="form-label">Confirmar Contraseña *</label>
+                        <input type="password" class="form-control" id="contraseña_confirm" name="contraseña_confirm" required style="background-color: var(--tertiary); color: var(--text-main); border: 2px solid var(--border);">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="crearUsuarioForm" class="btn btn-primary">Crear Usuario</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let usuarioIdActual = null;
+
+    {% if show_create_form %}
+    document.addEventListener('DOMContentLoaded', function() {
+        new bootstrap.Modal(document.getElementById('crearUsuarioModal')).show();
+    });
+    {% endif %}
+
+    function testAlerta() {
+        const button = event.target;
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+        button.disabled = true;
+
+        fetch('/admin/test-alerta', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(r => r.json())
+        .then(result => {
+            const testResult = document.getElementById('testResult');
+            if (result.status === 'ok') {
+                testResult.innerHTML = `<div class="alert alert-success"><i class="fa-solid fa-check-circle"></i> ${result.mensaje}</div>`;
+            } else {
+                testResult.innerHTML = `<div class="alert alert-danger"><i class="fa-solid fa-exclamation-triangle"></i> Error: ${result.error}</div>`;
+            }
+            testResult.style.display = 'block';
+        })
+        .catch(e => {
+            console.error('Error:', e);
+            const testResult = document.getElementById('testResult');
+            testResult.innerHTML = '<div class="alert alert-danger"><i class="fa-solid fa-exclamation-triangle"></i> Error al enviar la solicitud</div>';
+            testResult.style.display = 'block';
+        })
+        .finally(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
+    }
+
+    function mostrarCrearUsuario() {
+        new bootstrap.Modal(document.getElementById('crearUsuarioModal')).show();
+    }
+
+    function cambiarRol(userId, rolActual) {
+        usuarioIdActual = userId;
+        document.getElementById('nuevoRol').value = rolActual;
+        new bootstrap.Modal(document.getElementById('cambiarRolModal')).show();
+    }
+
+    function confirmarCambioRol() {
+        const nuevoRol = document.getElementById('nuevoRol').value;
+        
+        fetch(`/admin/cambiar-rol/${usuarioIdActual}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `rol=${nuevoRol}`
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.status === 'ok') {
+                bootstrap.Modal.getInstance(document.getElementById('cambiarRolModal')).hide();
+                location.reload();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        })
+        .catch(e => {
+            console.error('Error:', e);
+            alert('Error al cambiar rol');
+        });
+    }
+
+    function toggleUsuario(userId, activoActual) {
+        const accion = activoActual ? 'desactivar' : 'activar';
+        if (!confirm(`¿Estás seguro de que quieres ${accion} este usuario?`)) {
+            return;
+        }
+        
+        fetch(`/admin/toggle-usuario/${userId}`, {
+            method: 'POST'
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.status === 'ok') {
+                location.reload();
+            } else {
+                alert('Error: ' + result.error);
+            }
+        })
+        .catch(e => {
+            console.error('Error:', e);
+            alert('Error al cambiar estado del usuario');
+        });
+    }
+</script>
+{% endblock %}

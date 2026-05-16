@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}Dispositivos - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 mt-4">
+        <div class="col">
+            <h1 style="font-size: 2.5rem;">
+                <i class="fa-solid fa-microchip"></i> Mis Dispositivos
+            </h1>
+        </div>
+        <div class="col-auto">
+            <a href="/registrar" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Registrar Nuevo
+            </a>
+            <a href="/" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Volver
+            </a>
+        </div>
+    </div>
+
+    {% if dispositivos %}
+        <div class="row">
+            {% for dispositivo in dispositivos %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card" style="height: 100%;">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="fa-solid fa-computer"></i> {{ dispositivo.nombre }}
+                                </h5>
+                                {% if dispositivo.online %}
+                                    <span class="badge bg-success">
+                                        <i class="fa-solid fa-circle-check"></i> En línea
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fa-solid fa-circle-xmark"></i> Offline
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                <strong>IP:</strong> <code>{{ dispositivo.ip }}</code>
+                            </p>
+                            <p class="card-text">
+                                <strong>Tipo:</strong> <span style="color: #f6f7fb;">{{ dispositivo.tipo }}</span>
+                            </p>
+                            <p class="card-text">
+                                <strong>Ubicación:</strong> <span style="color: #f6f7fb;">{{ dispositivo.ubicacion }}</span>
+                            </p>
+                            <p class="card-text">
+                                <strong>Registrado:</strong> <small style="color: #f6f7fb;">{{ dispositivo.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</small>
+                            </p>
+
+                            <hr style="border-color: #334155;">
+
+                            <div class="mb-3">
+                                <label class="form-label" style="font-size: 0.85em;">
+                                    <strong style="color: #cbd5e1;">CONECTIVIDAD</strong>
+                                </label>
+                                {% if dispositivo.online %}
+                                    <div class="alert alert-success mb-0" style="border: none;">
+                                        <i class="fa-solid fa-wifi"></i> Dispositivo activo y enviando datos
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-danger mb-0" style="border: none;">
+                                        <i class="fa-solid fa-wifi-slash"></i> Dispositivo desconectado o sin datos
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer" style="background: linear-gradient(90deg, #1a1f3a 0%, #252d47 100%);">
+                            <div class="d-grid gap-2">
+                                <a href="/editar-dispositivo/{{ dispositivo.id }}" class="btn btn-sm btn-warning w-100">
+                                    <i class="fa-solid fa-pen-to-square"></i> Editar
+                                </a>
+                                <button class="btn btn-sm btn-danger w-100" onclick="eliminarDispositivo({{ dispositivo.id }})">
+                                    <i class="fa-solid fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card text-center py-5">
+                    <div class="card-body">
+                        <i class="fa-solid fa-inbox fa-4x" style="color: #818cf8;"></i>
+                        <h3 class="mt-4">No tienes dispositivos registrados</h3>
+                        <p style="color: #cbd5e1;">Registra tu primer dispositivo para comenzar</p>
+                        <a href="/registrar" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-plus"></i> Registrar Dispositivo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function eliminarDispositivo(deviceId) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este dispositivo?')) {
+        return;
+    }
+
+    fetch(`/eliminar-dispositivo/${deviceId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            alert('Dispositivo eliminado correctamente');
+            location.reload();
+        } else {
+            alert('Error al eliminar: ' + data.error);
+        }
+    })
+    .catch(e => alert('Error: ' + e));
+}
+</script>
+{% endblock %}

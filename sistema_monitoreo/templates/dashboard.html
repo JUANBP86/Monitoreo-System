@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-5 mt-4">
+        <div class="col">
+            <h1 style="font-size: 2.5rem;">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Bienvenido, <strong>{{ current_user.nombre or current_user.username }}</strong></p>
+        </div>
+        <div class="col-auto">
+            <a href="/registrar" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-plus"></i> Nuevo Dispositivo
+            </a>
+        </div>
+    </div>
+
+    {% if dispositivos %}
+        <!-- Resumen rápido -->
+        <div class="row mb-4 g-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body py-4">
+                        <i class="fa-solid fa-microchip fa-3x" style="color: var(--accent-light);"></i>
+                        <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Dispositivos</h6>
+                        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;">{{ dispositivos|length }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body py-4">
+                        <i class="fa-solid fa-circle-check fa-3x" style="color: var(--success);"></i>
+                        <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">En Línea</h6>
+                        <h2 id="dispositivos-online" style="font-size: 2.5rem; margin: 0.5rem 0;">{{ dispositivos|selectattr('online')|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body py-4">
+                        <i class="fa-solid fa-triangle-exclamation fa-3x" style="color: var(--warning);"></i>
+                        <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Alertas</h6>
+                        <h2 style="font-size: 2.5rem; margin: 0.5rem 0;" id="alertas-count">{{ alertas_abiertas or 0 }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body py-4">
+                        <i class="fa-solid fa-clock fa-3x" style="color: var(--accent);"></i>
+                        <h6 class="mt-3 text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Última Actualización</h6>
+                        <p style="font-size: 0.95em; margin: 0.5rem 0; color: #ffffff;" id="ultima-actualizacion">{{ ultima_actualizacion }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de dispositivos -->
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header py-3">
+                        <h5 class="mb-0">
+                            <i class="fa-solid fa-list"></i> Mis Dispositivos
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr style="background: rgba(99, 102, 241, 0.15); border-bottom: 2px solid #6366f1;">
+                                        <th style="color: var(--accent-light); font-weight: 700;">Nombre</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">IP</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">Tipo</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">Ubicación</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">CPU</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">RAM</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">DISCO</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">TEMP</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">PROCESOS</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">Estado</th>
+                                        <th style="color: var(--accent-light); font-weight: 700;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for dispositivo in dispositivos %}
+                                        <tr>
+                                            <td>
+                                                <i class="fa-solid fa-computer"></i> {{ dispositivo.nombre }}
+                                            </td>
+                                            <td>
+                                                <code>{{ dispositivo.ip }}</code>
+                                            </td>
+                                            <td>{{ dispositivo.tipo }}</td>
+                                            <td>{{ dispositivo.ubicacion }}</td>
+                                            <td>
+                                                {% if dispositivo.cpu %}
+                                                    <span class="badge {%if dispositivo.cpu > 80 %}bg-danger{% elif dispositivo.cpu > 50 %}bg-warning{% else %}bg-success{% endif %}">
+                                                        {{ dispositivo.cpu }}%
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if dispositivo.ram %}
+                                                    <span class="badge {%if dispositivo.ram > 80 %}bg-danger{% elif dispositivo.ram > 50 %}bg-warning{% else %}bg-success{% endif %}">
+                                                        {{ dispositivo.ram }}%
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if dispositivo.disco %}
+                                                    <span class="badge {%if dispositivo.disco > 90 %}bg-danger{% elif dispositivo.disco > 70 %}bg-warning{% else %}bg-success{% endif %}">
+                                                        {{ dispositivo.disco }}%
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if dispositivo.temperatura %}
+                                                    <span class="badge {%if dispositivo.temperatura > 80 %}bg-danger{% elif dispositivo.temperatura > 60 %}bg-warning{% else %}bg-success{% endif %}">
+                                                        {{ dispositivo.temperatura }}°C
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if dispositivo.procesos_activos %}
+                                                    <span class="badge bg-info">
+                                                        {{ dispositivo.procesos_activos }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">—</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if dispositivo.online %}
+                                                    <span class="badge bg-success">
+                                                        <i class="fa-solid fa-circle-check"></i> En línea
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">
+                                                        <i class="fa-solid fa-circle-xmark"></i> Offline
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="/dispositivos" class="btn btn-sm" style="background: linear-gradient(135deg, #818cf8, #6366f1); border: none; color: white; font-weight: 600;" title="Ver detalles">
+                                                    <i class="fa-solid fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div>
+
+                
+            </div>
+        <!-- Gráficas de métricas -->
+        <div class="row mb-4 g-4">
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">CPU (%)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="cpuChart" width="250" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">RAM (%)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="ramChart" width="250" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">DISCO (%)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="discoChart" width="250" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">TEMPERATURA (°C)</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="tempChart" width="250" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Estado</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="estadoChart" width="250" height="150"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Gráfica de tendencias -->
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Tendencias CPU</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <select id="dispositivo-select" class="form-select" style="background-color: var(--secondary); color: var(--text-main); border: 2px solid var(--border);">
+                                {% for dispositivo in dispositivos %}
+                                    <option value="{{ dispositivo.ip }}">{{ dispositivo.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <canvas id="tendenciaChart" width="600" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- No hay dispositivos -->
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card text-center py-5">
+                    <div class="card-body">
+                        <i class="fa-solid fa-inbox fa-4x" style="color: var(--accent);"></i>
+                        <h3 class="mt-4">No tienes dispositivos registrados</h3>
+                        <p style="color: var(--text-secondary);">Comienza registrando tu primer dispositivo</p>
+                        <a href="/registrar" class="btn btn-primary btn-lg">
+                            <i class="fa-solid fa-plus"></i> Registrar Dispositivo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Server-Sent Events para actualizaciones en tiempo real
+    let eventSource = null;
+
+    function iniciarSSE() {
+        if (eventSource) {
+            eventSource.close();
+        }
+        
+        eventSource = new EventSource('/stream');
+        
+        eventSource.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                actualizarDashboard(data);
+            } catch (e) {
+                console.error('Error parsing SSE data:', e);
+            }
+        };
+        
+        eventSource.onerror = function(event) {
+            console.error('SSE error:', event);
+            // Reintentar en 5 segundos
+            setTimeout(iniciarSSE, 5000);
+        };
+    }
+
+    function actualizarDashboard(data) {
+        if (data.error) {
+            console.error('SSE error:', data.error);
+            return;
+        }
+
+        const dispositivos = data.dispositivos || [];
+        const alertas_abiertas = data.alertas_abiertas || 0;
+        
+        // Actualizar contadores
+        document.getElementById('dispositivos-online').textContent = dispositivos.filter(d => d.cpu !== null).length;
+        document.getElementById('alertas-count').textContent = alertas_abiertas;
+        document.getElementById('ultima-actualizacion').textContent = new Date().toLocaleTimeString();
+        
+        // Actualizar tabla
+        actualizarTabla(dispositivos);
+        
+        // Actualizar gráficas
+        actualizarGraficas(dispositivos);
+        
+        console.log('Dashboard actualizado via SSE:', new Date().toLocaleTimeString());
+    }
+
+    function actualizarTabla(dispositivos) {
+        // Esta función actualizaría la tabla dinámicamente
+        // Por simplicidad, recargamos la página por ahora
+        // En una implementación completa, actualizaríamos cada fila
+    }
+
+    function actualizarGraficas(dispositivos) {
+        const labels = dispositivos.map(d => d.nombre);
+        const cpuData = dispositivos.map(d => d.cpu || 0);
+        const ramData = dispositivos.map(d => d.ram || 0);
+        const discoData = dispositivos.map(d => d.disco || 0);
+        const tempData = dispositivos.map(d => d.temperatura || 0);
+        
+        // Actualizar gráfica CPU
+        if (window.cpuChart) {
+            window.cpuChart.data.labels = labels;
+            window.cpuChart.data.datasets[0].data = cpuData;
+            window.cpuChart.data.datasets[0].backgroundColor = cpuData.map(v => v > 80 ? '#ef4444' : v > 50 ? '#f59e0b' : '#10b981');
+            window.cpuChart.update();
+        }
+        
+        // Actualizar gráfica RAM
+        if (window.ramChart) {
+            window.ramChart.data.labels = labels;
+            window.ramChart.data.datasets[0].data = ramData;
+            window.ramChart.data.datasets[0].backgroundColor = ramData.map(v => v > 80 ? '#ef4444' : v > 50 ? '#f59e0b' : '#10b981');
+            window.ramChart.update();
+        }
+        
+        // Actualizar gráfica Disco
+        if (window.discoChart) {
+            window.discoChart.data.labels = labels;
+            window.discoChart.data.datasets[0].data = discoData;
+            window.discoChart.data.datasets[0].backgroundColor = discoData.map(v => v > 90 ? '#ef4444' : v > 70 ? '#f59e0b' : '#10b981');
+            window.discoChart.update();
+        }
+        
+        // Actualizar gráfica Temperatura
+        if (window.tempChart) {
+            window.tempChart.data.labels = labels;
+            window.tempChart.data.datasets[0].data = tempData;
+            window.tempChart.data.datasets[0].backgroundColor = tempData.map(v => v > 80 ? '#ef4444' : v > 60 ? '#f59e0b' : '#10b981');
+            window.tempChart.update();
+        }
+    }
+
+    // Inicializar SSE cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        iniciarSSE();
+    });
+
+    // Datos para gráficas iniciales
+    const dispositivos = {{ dispositivos|tojson }};
+    const labels = dispositivos.map(d => d.nombre);
+    const cpuData = dispositivos.map(d => d.cpu || 0);
+    const ramData = dispositivos.map(d => d.ram || 0);
+    const discoData = dispositivos.map(d => d.disco || 0);
+    const tempData = dispositivos.map(d => d.temperatura || 0);
+    const estadoData = dispositivos.map(d => {
+        if (d.metrica_estado === 'CRITICO') return 3;
+        if (d.metrica_estado === 'ALERTA') return 2;
+        if (d.metrica_estado === 'OK') return 1;
+        return 0;
+    });
+
+    // Configuración común para gráficas
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                ticks: { color: '#cbd5e1' },
+                grid: { color: '#334155' }
+            },
+            x: {
+                ticks: { color: '#cbd5e1' },
+                grid: { color: '#334155' }
+            }
+        }
+    };
+
+    // Gráfica CPU
+    window.cpuChart = new Chart(document.getElementById('cpuChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: cpuData,
+                backgroundColor: cpuData.map(v => v > 80 ? '#ef4444' : v > 50 ? '#f59e0b' : '#10b981'),
+                borderColor: '#6366f1',
+                borderWidth: 1
+            }]
+        },
+        options: chartOptions
+    });
+
+    // Gráfica RAM
+    window.ramChart = new Chart(document.getElementById('ramChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: ramData,
+                backgroundColor: ramData.map(v => v > 80 ? '#ef4444' : v > 50 ? '#f59e0b' : '#10b981'),
+                borderColor: '#6366f1',
+                borderWidth: 1
+            }]
+        },
+        options: chartOptions
+    });
+
+    // Gráfica Disco
+    window.discoChart = new Chart(document.getElementById('discoChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: discoData,
+                backgroundColor: discoData.map(v => v > 90 ? '#ef4444' : v > 70 ? '#f59e0b' : '#10b981'),
+                borderColor: '#6366f1',
+                borderWidth: 1
+            }]
+        },
+        options: chartOptions
+    });
+
+    // Gráfica Temperatura
+    window.tempChart = new Chart(document.getElementById('tempChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: tempData,
+                backgroundColor: tempData.map(v => v > 80 ? '#ef4444' : v > 60 ? '#f59e0b' : '#10b981'),
+                borderColor: '#6366f1',
+                borderWidth: 1
+            }]
+        },
+        options: Object.assign({}, chartOptions, {
+            scales: Object.assign({}, chartOptions.scales, {
+                y: Object.assign({}, chartOptions.scales.y, { max: 120 })
+            })
+        })
+    });
+
+    // Gráfica Estado
+    new Chart(document.getElementById('estadoChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Sin datos', 'OK', 'Alerta', 'Crítico'],
+            datasets: [{
+                data: [
+                    estadoData.filter(v => v === 0).length,
+                    estadoData.filter(v => v === 1).length,
+                    estadoData.filter(v => v === 2).length,
+                    estadoData.filter(v => v === 3).length
+                ],
+                backgroundColor: ['#6b7280', '#10b981', '#f59e0b', '#ef4444'],
+                borderColor: '#6366f1',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { 
+                    labels: { color: '#cbd5e1' }
+                }
+            }
+        }
+    });
+
+    // Gráfica de tendencias
+    let tendenciaChart = null;
+    const selectDispositivo = document.getElementById('dispositivo-select');
+
+    function actualizarTendencia(ip) {
+        fetch(`/datos/${ip}`)
+            .then(r => r.json())
+            .then(data => {
+                const labels = data.map((_, i) => `Lectura ${i + 1}`);
+                const cpuValues = data.map(d => d.cpu);
+
+                if (tendenciaChart) {
+                    tendenciaChart.destroy();
+                }
+
+                tendenciaChart = new Chart(document.getElementById('tendenciaChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'CPU %',
+                            data: cpuValues,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: '#cbd5e1' } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: '#334155' }
+                            },
+                            x: {
+                                ticks: { color: '#cbd5e1' },
+                                grid: { color: '#334155' }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(e => console.error('Error cargando tendencias:', e));
+    }
+
+    // Inicializar con el primer dispositivo
+    if (dispositivos.length > 0) {
+        actualizarTendencia(dispositivos[0].ip);
+    }
+
+    // Cambiar dispositivo
+    selectDispositivo.addEventListener('change', function() {
+        actualizarTendencia(this.value);
+    });
+</script>
+{% endblock %}

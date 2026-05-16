@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Historial de Auditoría - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 mt-4">
+        <div class="col">
+            <h1 style="font-size: 2.5rem;">
+                <i class="fa-solid fa-clock-rotate-left"></i> Historial de Auditoría
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.05rem;">Registra las acciones importantes que se hicieron en el sistema.</p>
+        </div>
+        <div class="col-auto">
+            <a href="/admin" class="btn btn-secondary">
+                <i class="fa-solid fa-arrow-left"></i> Volver al Admin
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr style="background: rgba(37, 99, 235, 0.15); border-bottom: 2px solid #2563eb;">
+                            <th style="color: var(--accent-light); font-weight: 700;">Fecha</th>
+                            <th style="color: var(--accent-light); font-weight: 700;">Usuario</th>
+                            <th style="color: var(--accent-light); font-weight: 700;">Acción</th>
+                            <th style="color: var(--accent-light); font-weight: 700;">Detalles</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if logs %}
+                            {% for log in logs %}
+                                <tr>
+                                    <td>{{ log.fecha.strftime('%Y-%m-%d %H:%M:%S') if log.fecha else '—' }}</td>
+                                    <td>{{ log.username or 'Desconocido' }}</td>
+                                    <td>{{ log.accion }}</td>
+                                    <td>{{ log.detalles or '—' }}</td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">No hay registros en el historial.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

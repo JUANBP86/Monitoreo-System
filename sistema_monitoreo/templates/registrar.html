@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title or 'Registrar Dispositivo' }} - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-7">
+            <div class="card shadow-lg">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fa-solid fa-plus"></i> {{ page_title or 'Registrar Nuevo Dispositivo' }}
+                    </h3>
+                </div>
+
+                <div class="card-body p-5">
+                    {% if error %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-exclamation-circle"></i> {{ error }}
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" action="{{ action_url or url_for('registrar') }}">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">
+                                <i class="fa-solid fa-computer"></i> Nombre del Dispositivo
+                            </label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Ej: Servidor Principal" required value="{{ device.nombre if device else '' }}">
+                            <small style="color: #cbd5e1; display: block; margin-top: 0.3rem;">Nombre descriptivo para identificar el dispositivo</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="ip" class="form-label">
+                                <i class="fa-solid fa-network-wired"></i> Dirección IP
+                            </label>
+                            <input type="text" class="form-control" id="ip" name="ip" placeholder="192.168.1.100" pattern="^(\d{1,3}\.){3}\d{1,3}$" required value="{{ device.ip if device else '' }}">
+                            <small style="color: #cbd5e1; display: block; margin-top: 0.3rem;">Ej: 192.168.1.100 o 127.0.0.1</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo" class="form-label">
+                                    <i class="fa-solid fa-list"></i> Tipo de Dispositivo
+                                </label>
+                                <select class="form-select" id="tipo" name="tipo" required>
+                                    <option value="">-- Selecciona un tipo --</option>
+                                    <option value="Servidor" {% if device and device.tipo == 'Servidor' %}selected{% endif %}>Servidor</option>
+                                    <option value="Computadora" {% if device and device.tipo == 'Computadora' %}selected{% endif %}>Computadora</option>
+                                    <option value="Laptop" {% if device and device.tipo == 'Laptop' %}selected{% endif %}>Laptop</option>
+                                    <option value="Router" {% if device and device.tipo == 'Router' %}selected{% endif %}>Router</option>
+                                    <option value="Switch" {% if device and device.tipo == 'Switch' %}selected{% endif %}>Switch</option>
+                                    <option value="Impresora" {% if device and device.tipo == 'Impresora' %}selected{% endif %}>Impresora</option>
+                                    <option value="NAS" {% if device and device.tipo == 'NAS' %}selected{% endif %}>NAS</option>
+                                    <option value="Otro" {% if device and device.tipo == 'Otro' %}selected{% endif %}>Otro</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="ubicacion" class="form-label">
+                                    <i class="fa-solid fa-map-pin"></i> Ubicación
+                                </label>
+                                <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Ej: Oficina 101" required value="{{ device.ubicacion if device else '' }}">
+                                <small style="color: #cbd5e1; display: block; margin-top: 0.3rem;">Ubicación física del dispositivo</small>
+                            </div>
+                        </div>
+
+                        <hr style="border-color: #334155; margin: 2rem 0;">
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/dispositivos" class="btn btn-secondary">
+                                <i class="fa-solid fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-save"></i> {{ submit_text or 'Registrar Dispositivo' }}
+                            </button>
+                        </div>
+                    </form>
+
+                    <div class="alert alert-info mt-4" role="alert">
+                        <i class="fa-solid fa-lightbulb"></i>
+                        <strong>Nota:</strong> El dispositivo debe estar configurado para enviar métricas al servidor en <code>http://127.0.0.1:5000/metricas</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

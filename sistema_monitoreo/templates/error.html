@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Error - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow-lg" style="border-left: 5px solid #ef4444;">
+            <div class="card-body p-5 text-center">
+                <i class="fa-solid fa-circle-exclamation fa-4x" style="color: #ef4444;"></i>
+                <h2 class="mt-4 mb-3">¡Error!</h2>
+                <p class="card-text" style="color: #cbd5e1; font-size: 1.1rem;">{{ mensaje }}</p>
+                
+                <a href="/" class="btn btn-primary mt-4">
+                    <i class="fa-solid fa-home"></i> Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

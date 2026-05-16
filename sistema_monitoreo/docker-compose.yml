@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: monitoreo_sistemas
+      MYSQL_USER: monitoreo
+      MYSQL_PASSWORD: monitoreo_pass
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database_setup.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./db_init_admin.sql:/docker-entrypoint-initdb.d/02_admin.sql:ro
+    ports:
+      - "3306:3306"
+
+  web:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_USER: monitoreo
+      DB_PASSWORD: monitoreo_pass
+      DB_NAME: monitoreo_sistemas
+      MAIL_USERNAME: infomonitoreo01@gmail.com
+      MAIL_PASSWORD: Kiara25.
+      MAIL_SERVER: smtp.gmail.com
+      MAIL_PORT: "587"
+      MAIL_USE_TLS: "True"
+      MAIL_USE_SSL: "False"
+      TELEGRAM_BOT_TOKEN: "8645532198:AAFxDCrewAsWgOr-Z5zQApJaVHXsilUgwrQ"
+      TELEGRAM_CHAT_ID: "1334190620"
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    command: ["/bin/bash", "-c", "./wait-for-db.sh"]
+
+volumes:
+  db_data:

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 mt-4">
+        <div class="col">
+            <h1 style="font-size: 2.5rem;">
+                <i class="fa-solid fa-file-lines"></i> Reportes
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 1.1rem;">Resumen de métricas y alertas por rango de fecha.</p>
+        </div>
+        <div class="col-auto">
+            <a href="/alertas" class="btn btn-secondary">
+                <i class="fa-solid fa-triangle-exclamation"></i> Ver Alertas
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="card p-4 mb-4">
+                <form class="row g-3" method="get" action="/reportes">
+                    <div class="col-md-5">
+                        <label class="form-label">Desde</label>
+                        <input type="date" name="desde" class="form-control" value="{{ desde }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Hasta</label>
+                        <input type="date" name="hasta" class="form-control" value="{{ hasta }}">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Filtrar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <h6 class="text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Dispositivos</h6>
+                    <h2 class="mt-3" style="font-size: 2.5rem;">{{ resumen.total_dispositivos }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <h6 class="text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Métricas</h6>
+                    <h2 class="mt-3" style="font-size: 2.5rem;">{{ resumen.total_metricas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <h6 class="text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Alertas totales</h6>
+                    <h2 class="mt-3" style="font-size: 2.5rem;">{{ resumen.total_alertas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100">
+                <div class="card-body py-4">
+                    <h6 class="text-uppercase" style="letter-spacing: 1px; color: var(--text-secondary);">Alertas activas</h6>
+                    <h2 class="mt-3" style="font-size: 2.5rem;">{{ resumen.alertas_abiertas }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Métricas recientes</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>IP</th>
+                                <th>Estado</th>
+                                <th>CPU</th>
+                                <th>RAM</th>
+                                <th>DISCO</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in metricas %}
+                                <tr>
+                                    <td>{{ m.dispositivo }}</td>
+                                    <td><code>{{ m.ip }}</code></td>
+                                    <td>{{ m.estado }}</td>
+                                    <td>{{ m.cpu }}%</td>
+                                    <td>{{ m.ram }}%</td>
+                                    <td>{{ m.disco }}%</td>
+                                    <td>{{ m.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7" class="text-center">No hay métricas en el rango seleccionado.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Alertas recientes</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Dispositivo</th>
+                                <th>Tipo</th>
+                                <th>Mensaje</th>
+                                <th>Fecha</th>
+                                <th>Resuelta</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in alertas %}
+                                <tr>
+                                    <td>{{ a.dispositivo }}</td>
+                                    <td>{{ a.tipo }}</td>
+                                    <td>{{ a.mensaje }}</td>
+                                    <td>{{ a.fecha_alerta.strftime('%d/%m/%Y %H:%M') }}</td>
+                                    <td>{{ 'Sí' if a.resuelta else 'No' }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No hay alertas en el rango seleccionado.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

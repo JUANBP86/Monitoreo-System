@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Alertas - Sistema de Monitoreo{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4 mt-4">
+        <div class="col">
+            <h1 style="font-size: 2.5rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Alertas
+            </h1>
+            <p style="color: #cbd5e1; font-size: 1.1rem;">Aquí se muestran las alertas activas y resueltas.</p>
+        </div>
+        <div class="col-auto">
+            <a href="/reportes" class="btn btn-secondary">
+                <i class="fa-solid fa-file-lines"></i> Ir a Reportes
+            </a>
+        </div>
+    </div>
+
+    {% if alertas %}
+        <div class="row mb-4">
+            <div class="col">
+                <div class="card">
+                    <div class="card-body p-4" style="color: #ffffff;">
+                        <h5 class="card-title">Alertas recientes</h5>
+                        <p class="card-text">Consulta el estado de cada alerta y resuélvelas cuando el problema se haya atendido.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Dispositivo</th>
+                                    <th>IP</th>
+                                    <th>Tipo</th>
+                                    <th>Mensaje</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alerta in alertas %}
+                                    <tr>
+                                        <td>{{ alerta.dispositivo }}</td>
+                                        <td><code>{{ alerta.ip }}</code></td>
+                                        <td>{{ alerta.tipo }}</td>
+                                        <td>{{ alerta.mensaje }}</td>
+                                        <td>{{ alerta.fecha_alerta.strftime('%d/%m/%Y %H:%M') }}</td>
+                                        <td>
+                                            {% if alerta.resuelta %}
+                                                <span class="badge bg-success">Resuelta</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Activa</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if not alerta.resuelta %}
+                                                <form action="/alertas/resolver/{{ alerta.id }}" method="post" style="display:inline">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fa-solid fa-check"></i> Resolver
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <small style="color: #cbd5e1;">Sin acciones</small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card text-center py-5">
+                    <div class="card-body" style="color: #ffffff;">
+                        <i class="fa-solid fa-check-circle fa-4x" style="color: #10b981;"></i>
+                        <h3 class="mt-4">No hay alertas recientes</h3>
+                        <p style="color: #cbd5e1;">Todos los dispositivos están funcionando correctamente o no hay alertas activas.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
