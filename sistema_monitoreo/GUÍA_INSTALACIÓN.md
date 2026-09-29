@@ -1,8 +1,8 @@
 # Sistema de Monitoreo con Autenticación - Guía de Instalación v2.0
 
-## 🚀 Pasos para ejecutar el sistema
+##  Pasos para ejecutar el sistema
 
-### 1️⃣ Actualizar la Base de Datos
+### 1. Actualizar la Base de Datos
 
 Ejecuta el script SQL para crear la tabla de usuarios:
 
@@ -22,7 +22,7 @@ Esto creará las tablas:
 - `alertas` - Sistema de alertas
 - `logs_auditoria` - Registro de acciones
 
-### 2️⃣ Instalar dependencias
+### 2. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
@@ -36,7 +36,7 @@ Las dependencias son:
 - requests
 - werkzeug
 
-### 3️⃣ Ejecutar el servidor Flask
+### 3. Ejecutar el servidor Flask
 
 ```bash
 python app.py
@@ -44,7 +44,7 @@ python app.py
 
 El servidor estará disponible en: **http://127.0.0.1:5000**
 
-### 4️⃣ Crear tu cuenta
+### 4. Crear tu cuenta
 
 1. Abre el navegador en `http://127.0.0.1:5000`
 2. Click en "Registrarse"
@@ -55,13 +55,13 @@ El servidor estará disponible en: **http://127.0.0.1:5000**
    - Contraseña: Mínimo 6 caracteres
 4. Haz click en "Crear Cuenta"
 
-### 5️⃣ Ingresar a tu cuenta
+### 5. Ingresar a tu cuenta
 
 1. Click en "Ingresar"
 2. Usa el usuario y contraseña que acabas de crear
 3. ¡Listo! Ya estás dentro del dashboard
 
-### 6️⃣ Registrar dispositivos
+### 6. Registrar dispositivos
 
 1. En el dashboard, haz click en "+ Nuevo Dispositivo"
 2. Completa los datos:
@@ -70,7 +70,7 @@ El servidor estará disponible en: **http://127.0.0.1:5000**
    - Tipo: Selecciona de la lista
    - Ubicación: Ubicación física
 
-### 7️⃣ Configurar agent.py en los dispositivos
+### 7. Configurar agent.py en los dispositivos
 
 En cada dispositivo que quieras monitorear, ejecuta `agent.py`:
 
